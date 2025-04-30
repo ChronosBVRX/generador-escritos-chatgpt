@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Generador de Escritos</title>
+</head>
+<body>
+  <h1>Generador de Escritos Formales</h1>
+  <form id="formulario">
+    <input id="nombre" placeholder="Nombre" required><br>
+    <input id="cargo" placeholder="Cargo" required><br>
+    <input id="destinatario" placeholder="Dirigido a..." required><br>
+    <textarea id="problema" placeholder="Describe el problema" required></textarea><br>
+    <textarea id="peticion" placeholder="¿Qué solicitas?" required></textarea><br>
+    <button type="submit">Generar</button>
+  </form>
+  <h2>Resultado:</h2>
+  <pre id="respuesta"></pre>
+
+  <script>
+    document.getElementById('formulario').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const datos = {
+        nombre: document.getElementById('nombre').value,
+        cargo: document.getElementById('cargo').value,
+        destinatario: document.getElementById('destinatario').value,
+        problema: document.getElementById('problema').value,
+        peticion: document.getElementById('peticion').value
+      };
+
+      const res = await fetch('/generar-escrito', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datos)
+      });
+
+      const json = await res.json();
+      document.getElementById('respuesta').textContent = json.texto;
+    });
+  </script>
+</body>
+</html>
