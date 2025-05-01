@@ -33,11 +33,13 @@ Mensaje del trabajador:
 `;
 
 
-    const completion = await openai.chat.completions.create({
-model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.7
-    });
+ const completion = await openai.chat.completions.create({
+  model: 'gpt-3.5-turbo',
+  messages: [{ role: 'user', content: prompt }],
+  temperature: 0.6,
+  max_tokens: 600 // para que no se exceda
+});
+
 
     const respuesta = completion.choices[0].message.content;
     res.json({ texto: respuesta });
