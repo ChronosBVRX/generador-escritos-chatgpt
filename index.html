@@ -5,21 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TrascendencIA Sindical</title>
   <style>
+    :root {
+      --bg-color: #f5f5f5;
+      --text-color: #222;
+      --user-bg: #daf1ff;
+      --bot-bg: #e0e0e0;
+      --header-bg: #003366;
+      --button-bg: #003366;
+      --button-hover: #00509d;
+    }
+    body.dark {
+      --bg-color: #121212;
+      --text-color: #fff;
+      --user-bg: #144e75;
+      --bot-bg: #333;
+      --header-bg: #001f3f;
+      --button-bg: #00509d;
+      --button-hover: #007acc;
+    }
     body {
       margin: 0;
       font-family: "Segoe UI", sans-serif;
-      background-color: #f5f5f5;
+      background-color: var(--bg-color);
+      color: var(--text-color);
       display: flex;
       flex-direction: column;
       height: 100vh;
     }
     header {
-      background-color: #003366;
+      background-color: var(--header-bg);
       color: white;
       padding: 16px;
       font-size: 1.2rem;
       text-align: center;
       font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     #chat-container {
       flex: 1;
@@ -27,30 +49,49 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
+      gap: 15px;
+    }
+    .message-wrapper {
+      display: flex;
+      align-items: flex-start;
       gap: 10px;
     }
+    .message-wrapper.user {
+      justify-content: flex-end;
+    }
     .message {
-      max-width: 80%;
+      max-width: 70%;
       padding: 12px;
       border-radius: 12px;
       line-height: 1.4;
       white-space: pre-wrap;
+      background-color: var(--bot-bg);
     }
     .user-message {
-      align-self: flex-end;
-      background-color: #daf1ff;
-      color: #003366;
+      background-color: var(--user-bg);
+      color: var(--text-color);
     }
     .bot-message {
-      align-self: flex-start;
-      background-color: #e0e0e0;
-      color: #222;
+      background-color: var(--bot-bg);
+      color: var(--text-color);
+    }
+    .profile-pic {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
     }
     footer {
       display: flex;
+      flex-direction: column;
+      gap: 8px;
       padding: 16px;
       background-color: white;
       border-top: 1px solid #ccc;
+    }
+    #input-area {
+      display: flex;
+      gap: 10px;
     }
     #input {
       flex: 1;
@@ -58,11 +99,119 @@
       font-size: 1rem;
       border: 1px solid #ccc;
       border-radius: 8px;
-      margin-right: 10px;
     }
     button {
       padding: 12px 20px;
-      background-color: #003366;
+      background-color: var(--button-bg);
       color: white;
-      border: none
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: var(--button-hover);
+    }
+    #escribiendo {
+      font-style: italic;
+      font-size: 0.9rem;
+      margin-left: 10px;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    TrascendencIA Sindical — Asesor Laboral Virtual
+    <button onclick="toggleDarkMode()">🌙</button>
+  </header>
+
+  <div id="chat-container"></div>
+  <div id="escribiendo"></div>
+
+  <footer>
+    <div id="input-area">
+      <input type="text" id="input" placeholder="Escribe tu mensaje..." />
+      <button onclick="enviarMensaje()">Enviar</button>
+      <button onclick="descargarChat()">📄 PDF</button>
+    </div>
+  </footer>
+
+  <script>
+    const chatContainer = document.getElementById("chat-container");
+    const input = document.getElementById("input");
+    const escribiendo = document.getElementById("escribiendo");
+    const chatHistorial = [];
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+    }
+
+    function agregarMensaje(texto, tipo) {
+      const wrapper = document.createElement("div");
+      wrapper.className = `message-wrapper ${tipo}`;
+
+      const msg = document.createElement("div");
+      msg.className = `message ${tipo}-message`;
+      msg.textContent = texto;
+
+      if (tipo === "bot") {
+        const img = document.createElement("img");
+        img.src = "https://raw.githubusercontent.com/ChronosBVRX/generador-escritos-chatgpt/refs/heads/main/4.png";
+        img.alt = "Perfil TrascendencIA";
+        img.className = "profile-pic";
+        wrapper.appendChild(img);
+      }
+
+      wrapper.appendChild(msg);
+      chatContainer.appendChild(wrapper);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+      chatHistorial.push(`${tipo === 'bot' ? 'TrascendencIA Sindical' : 'Tú'}: ${texto}\n`);
+    }
+
+    async function enviarMensaje() {
+      const mensaje = input.value.trim();
+      if (!mensaje) return;
+      agregarMensaje(mensaje, "user");
+      input.value = "";
+      escribiendo.textContent = "TrascendencIA Sindical está escribiendo...";
+
+      try {
+        const res = await fetch("/generar-escrito", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nombre: "Usuario",
+            cargo: "Trabajador",
+            destinatario: "TrascendencIA Sindical",
+            problema: mensaje,
+            peticion: "Bríndame orientación clara y útil, por favor."
+          }),
+        });
+
+        const data = await res.json();
+        escribiendo.textContent = "";
+        agregarMensaje(data.texto, "bot");
+      } catch (error) {
+        escribiendo.textContent = "";
+        agregarMensaje("Error al conectar con el servidor.", "bot");
+      }
+    }
+
+    function descargarChat() {
+      const blob = new Blob(chatHistorial, { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'chat_trascendencia.txt';
+      link.click();
+    }
+
+    input.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        enviarMensaje();
+      }
+    });
+  </script>
+</body>
+</html>
+
 
