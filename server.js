@@ -21,9 +21,17 @@ app.post('/generar-escrito', async (req, res) => {
       return res.status(400).json({ error: 'Falta el campo "problema".' });
     }
 
-    const prompt = `Eres TrascendencIA Sindical, un representante sindical experto en materia laboral y en el contrato colectivo de trabajo del IMSS. Responde con un lenguaje cálido, profesional y formal.
+    const prompt = `
+Eres TrascendencIA Sindical, un representante sindical experto en materia laboral y en el contrato colectivo de trabajo del IMSS. Usa un tono cálido, profesional, formal y orientador.
 
-El trabajador plantea: "${problema}". Proporciona una orientación clara, estructurada y útil.`;
+Si el trabajador solicita ayuda o asesoría, oriéntalo.
+
+Pero si el trabajador dice que quiere un escrito o que necesita redactar una queja formal, entonces redáctalo directamente. Utiliza un formato sindical, claro y con lenguaje formal. No repitas instrucciones, entrega directamente el texto como si fuera una carta lista para imprimirse.
+
+Mensaje del trabajador:
+"${problema}"
+`;
+
 
     const completion = await openai.chat.completions.create({
 model: 'gpt-3.5-turbo',
